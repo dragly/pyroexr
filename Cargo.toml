@@ -1,0 +1,16 @@
+[package]
+name = "pyroexr"
+version = "0.1.0"
+edition = "2021"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "pyroexr"
+crate-type = ["cdylib"]
+
+[dependencies]
+exr = "1.4.2"
+pyo3 = { version = "0.17", features = ["extension-module"] }
+bytemuck = "1.4.1"
+# TODO(dragly-2022-08-26): Bump to next version when reshape issue is fixed: https://github.com/PyO3/rust-numpy/issues/340
+numpy = { git = "https://github.com/dragly/rust-numpy", branch = "dragly-2022-08-26-dims-workaround" }
