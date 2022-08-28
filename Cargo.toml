@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 exr = "1.4.2"
-pyo3 = { version = "0.17", features = ["extension-module"] }
+pyo3 = { version = "0.17", features = ["extension-module", "abi3", "abi3-py310", "generate-abi3-import-lib"] }
 bytemuck = "1.4.1"
 # TODO(dragly-2022-08-26): Bump to next version when reshape issue is fixed: https://github.com/PyO3/rust-numpy/issues/340
 numpy = { git = "https://github.com/dragly/rust-numpy", branch = "dragly-2022-08-26-dims-workaround" }
