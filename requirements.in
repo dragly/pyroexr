@@ -2,4 +2,4 @@ matplotlib
 maturin
 numpy
 pip-tools
-pyside6
+pytest

@@ -1,0 +1,43 @@
+name: test suite
+env:
+  RUSTC_WRAPPER: sccache
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: cargo test and pytest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: sccache cache files
+        uses: actions/cache@v1.1.0
+        with:
+          path: /home/runner/.cache/sccache
+          key: ${{ matrix.rust }}-sccache-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.rust }}-sccache
+      - name: Download sccache
+        run: |
+          wget https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz
+          tar -xvzf sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz
+          sudo cp sccache-v0.2.15-x86_64-unknown-linux-musl/sccache /usr/bin/sccache
+          sudo chmod +x /usr/bin/sccache
+          sccache --show-stats
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all --examples -- -D warnings
+      - run: cargo test --all-features
+      - name: Pytest
+        run: |
+          python -m venv ./venv
+          source ./venv/bin/activate
+          python -m pip install -r requirements.txt
+          maturin develop
+          pytest

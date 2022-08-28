@@ -16,7 +16,9 @@ impl ImageWrapper {
         let layer = match self.image.layer_data.first() {
             Some(l) => l,
             None => {
-                return Err(PyRuntimeError::new_err("Image contains no layers".to_string()));
+                return Err(PyRuntimeError::new_err(
+                    "Image contains no layers".to_string(),
+                ));
             }
         };
         Ok(layer
@@ -31,7 +33,9 @@ impl ImageWrapper {
         let layer = match self.image.layer_data.first() {
             Some(l) => l,
             None => {
-                return Err(PyRuntimeError::new_err("Image contains no layers".to_string()));
+                return Err(PyRuntimeError::new_err(
+                    "Image contains no layers".to_string(),
+                ));
             }
         };
         let channel = match layer
