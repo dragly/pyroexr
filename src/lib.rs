@@ -8,25 +8,13 @@ use pyo3::{
 #[pyclass]
 struct ImageWrapper {
     image: Image<SmallVec<[Layer<AnyChannels<FlatSamples>>; 2]>>,
+    channel_names: Vec<String>,
 }
 
 #[pymethods]
 impl ImageWrapper {
-    fn channels(&self) -> PyResult<Vec<String>> {
-        let layer = match self.image.layer_data.first() {
-            Some(l) => l,
-            None => {
-                return Err(PyRuntimeError::new_err(
-                    "Image contains no layers".to_string(),
-                ));
-            }
-        };
-        Ok(layer
-            .channel_data
-            .list
-            .iter()
-            .map(|c| c.name.to_string())
-            .collect())
+    fn channel_names(&self) -> Vec<String> {
+        self.channel_names.clone()
     }
 
     fn channel<'a>(&self, py: Python<'a>, name: &str) -> PyResult<&'a PyArray2<f32>> {
@@ -56,6 +44,20 @@ impl ImageWrapper {
 
         array
     }
+
+    fn channels<'a>(&self, py: Python<'a>, names: Vec<String>) -> PyResult<Vec<&'a PyArray2<f32>>> {
+        for name in names.iter() {
+            if !self.channel_names.contains(name) {
+                return Err(PyKeyError::new_err(format!(
+                    "Channel '{name}' not found in image"
+                )));
+            }
+        }
+
+        let py_images = names.iter().map(|name| self.channel(py, name).unwrap());
+
+        Ok(py_images.collect())
+    }
 }
 
 #[pyfunction]
@@ -76,7 +78,26 @@ fn load(filename: &str) -> PyResult<ImageWrapper> {
         }
     };
 
-    Ok(ImageWrapper { image })
+    let layer = match image.layer_data.first() {
+        Some(l) => l,
+        None => {
+            return Err(PyRuntimeError::new_err(
+                format!("Image '{filename}' contains no layers").to_string(),
+            ));
+        }
+    };
+
+    let channel_names = layer
+        .channel_data
+        .list
+        .iter()
+        .map(|c| c.name.to_string())
+        .collect();
+
+    Ok(ImageWrapper {
+        image,
+        channel_names,
+    })
 }
 
 #[pymodule]

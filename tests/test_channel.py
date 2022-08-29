@@ -1,9 +1,11 @@
 import pyroexr
 import numpy as np
 
+
 def test_ocean_channels():
     image = pyroexr.load("tests/files/Ocean.exr")
-    assert image.channels() == ["B", "G", "R"]
+    assert set(image.channel_names()) == {"B", "G", "R"}
+
 
 def test_ocean_blue_channel():
     image = pyroexr.load("tests/files/Ocean.exr")
