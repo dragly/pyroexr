@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use ::exr::prelude::{AnyChannels, FlatSamples, Image, Layer, ReadChannels, ReadLayers, SmallVec};
 use numpy::{PyArray, PyArray2};
 use pyo3::{
@@ -45,7 +47,11 @@ impl ImageWrapper {
         array
     }
 
-    fn channels<'a>(&self, py: Python<'a>, names: Vec<String>) -> PyResult<Vec<&'a PyArray2<f32>>> {
+    fn channels_with_names<'a>(
+        &self,
+        py: Python<'a>,
+        names: Vec<String>,
+    ) -> PyResult<Vec<&'a PyArray2<f32>>> {
         for name in names.iter() {
             if !self.channel_names.contains(name) {
                 return Err(PyKeyError::new_err(format!(
@@ -57,6 +63,15 @@ impl ImageWrapper {
         let py_images = names.iter().map(|name| self.channel(py, name).unwrap());
 
         Ok(py_images.collect())
+    }
+
+    fn channels<'a>(&self, py: Python<'a>) -> HashMap<String, &'a PyArray2<f32>> {
+        let py_images = self
+            .channel_names
+            .iter()
+            .map(|name| (name.clone(), self.channel(py, name).unwrap()));
+
+        py_images.into_iter().collect()
     }
 }
 
